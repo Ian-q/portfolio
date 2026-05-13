@@ -12,7 +12,7 @@ function Nav({ active }: { active: string }) {
           <span className="mono">IA</span>
         </div>
         <div className="v2-nav__wordmark mono">
-          ADELMAN.<span>SYS</span>
+          IANADELMAN.<span>DEV</span>
         </div>
       </div>
       {D.nav.map((n, i) => (
