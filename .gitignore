@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# claude-design source export — kept on disk for reference, not in git
+/design-export/
+/portfolio website.zip
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
