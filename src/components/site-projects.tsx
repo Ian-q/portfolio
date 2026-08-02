@@ -10,21 +10,37 @@ type CardProps = {
   total: number;
   onOpen: (id: string) => void;
   feature?: boolean;
+  compact?: boolean;
 };
 
-export function ProjectCard({ p, idx, total, onOpen, feature = false }: CardProps) {
+export function ProjectCard({
+  p,
+  idx,
+  total,
+  onOpen,
+  feature = false,
+  compact = false,
+}: CardProps) {
   const firstImg = p.images && p.images[0];
-  const orient = firstImg && firstImg.orient === "portrait" ? "portrait" : "landscape";
+  // The compact variant is a fixed 4-up grid, so a portrait tile would break the
+  // row rhythm. Force landscape framing there regardless of the source image.
+  const orient =
+    !compact && firstImg && firstImg.orient === "portrait" ? "portrait" : "landscape";
   const mediaCls =
     "site-project__media " +
     (feature ? "site-project__media--feature " : "") +
+    (compact ? "site-project__media--compact " : "") +
     "site-project__media--" +
     orient;
 
   return (
     <button
       type="button"
-      className={"site-project" + (feature ? " site-project--feature" : "")}
+      className={
+        "site-project" +
+        (feature ? " site-project--feature" : "") +
+        (compact ? " site-project--compact" : "")
+      }
       onClick={() => onOpen(p.id)}
       aria-label={"Open project: " + p.title}
     >
@@ -59,6 +75,29 @@ export function ProjectCard({ p, idx, total, onOpen, feature = false }: CardProp
         <p className="site-project__summary">{p.summary}</p>
       </div>
     </button>
+  );
+}
+
+export function ProjectBand({
+  label,
+  count,
+  children,
+}: {
+  label: string;
+  count: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="site-band" aria-label={label}>
+      <div className="site-band__head">
+        <h3 className="site-band__label mono">{"// " + label.toUpperCase()}</h3>
+        <span className="site-band__rule" aria-hidden="true" />
+        <span className="site-band__count mono">
+          {String(count).padStart(2, "0")} {count === 1 ? "item" : "items"}
+        </span>
+      </div>
+      {children}
+    </section>
   );
 }
 

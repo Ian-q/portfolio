@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { siteData as D, type Patent, type Publication, type Experience, type Education } from "@/lib/site-data";
-import { ProjectCard, ProjectModal } from "./site-projects";
+import { ProjectBand, ProjectCard, ProjectModal } from "./site-projects";
 
 function Nav({ active }: { active: string }) {
   return (
@@ -324,8 +324,6 @@ export default function SitePage() {
     [openId]
   );
 
-  const feature = D.projects.find((p) => p.feature);
-  const others = D.projects.filter((p) => !p.feature);
 
   return (
     <div className="pf-root v2-root site-root">
@@ -380,41 +378,48 @@ export default function SitePage() {
           id="projects"
           num="// 04"
           title={<>Selected <em className="em-italic">work</em>.</>}
-          sub="Five projects spanning hardware, embedded firmware, robotics, AI tooling, and the web — each one shipping. Open any card to read more."
+          sub="Projects across vehicle hardware, embedded firmware, controls, and developer tooling — some in production, some on the bench, some coursework I still stand behind. Open any card to read more."
           count={`${D.projects.length} items`}
         >
           <div className="site-projects">
-            {feature && (
-              <ProjectCard
-                p={feature}
-                idx={D.projects.indexOf(feature)}
-                total={D.projects.length}
-                onOpen={openProject}
-                feature
-              />
-            )}
-            <div className="site-projects__row">
-              {others.slice(0, 2).map((p) => (
-                <ProjectCard
-                  key={p.id}
-                  p={p}
-                  idx={D.projects.indexOf(p)}
-                  total={D.projects.length}
-                  onOpen={openProject}
-                />
-              ))}
-            </div>
-            <div className="site-projects__row">
-              {others.slice(2, 4).map((p) => (
-                <ProjectCard
-                  key={p.id}
-                  p={p}
-                  idx={D.projects.indexOf(p)}
-                  total={D.projects.length}
-                  onOpen={openProject}
-                />
-              ))}
-            </div>
+            {D.projectGroups.map((g) => {
+              const inBand = D.projects.filter((p) => p.group === g.id);
+              if (inBand.length === 0) return null;
+
+              const banner = inBand.find((p) => p.feature);
+              const rest = inBand.filter((p) => !p.feature);
+              const rowCls = rest.some((p) => p.compact)
+                ? "site-projects__row site-projects__row--compact"
+                : "site-projects__row";
+
+              return (
+                <ProjectBand key={g.id} label={g.label} count={inBand.length}>
+                  {banner && (
+                    <ProjectCard
+                      p={banner}
+                      idx={inBand.indexOf(banner)}
+                      total={inBand.length}
+                      onOpen={openProject}
+                      feature
+                    />
+                  )}
+                  {rest.length > 0 && (
+                    <div className={rowCls}>
+                      {rest.map((p) => (
+                        <ProjectCard
+                          key={p.id}
+                          p={p}
+                          idx={inBand.indexOf(p)}
+                          total={inBand.length}
+                          onOpen={openProject}
+                          compact={p.compact}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </ProjectBand>
+              );
+            })}
           </div>
         </Section>
 
