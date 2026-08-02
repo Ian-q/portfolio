@@ -271,12 +271,13 @@ export const siteData: SiteData = {
       tagCategory: "Embedded",
       group: "oss",
       summary:
-        "A 15M-parameter quantized Llama running under Zephyr on a Teensy 4.1 — 600 MHz Cortex-M7, no OS, no network — with PSRAM hand-soldered to the board's two unpopulated footprints. First hardware run July 2026: 2.98 tok/s, 309 ms to first token.",
+        "A 15M-parameter quantized Llama running under Zephyr on a Teensy 4.1 — 600 MHz Cortex-M7, no OS, no network — with PSRAM hand-soldered to the board's two unpopulated footprints. Runs on hardware at 2.98 tok/s, and codes messages against its own predictions as a radio codec.",
       long: [
         "The Teensy 4.1 ships with two unpopulated footprints on its underside, wired to the processor's second QSPI controller. This project solders PSRAM to them and finds out what a 600 MHz Cortex-M7 with external RAM will actually do with a transformer. Measured on the first board: a 15M-parameter model loads from a FAT32 microSD into PSRAM and generates coherent prose at 2.98 tok/s, 309 ms to first token, reading 8.3 MB of weights per token at 25.5 MB/s effective — 81% of what the raw sequential bench reports, with the missing fifth going to the KV cache and sampler scratch sharing the same bus with random access.",
         "Every design decision follows from one measurement. Autoregressive decoding reads each weight exactly once and reuses none, so arithmetic intensity is pinned near one operation per byte: compute needs about 58 ms for a forward pass where memory needs 690 ms. Memory loses by nearly twelve times and the core sits idle roughly 92% of each token. So the levers are bits per weight and bus clock — not kernels, not overclocking. Quantization scales are interleaved into each block rather than kept in a parallel array, because two concurrent read streams defeat the prefetcher on the one access pattern this workload consists entirely of. And since the achievable bus clock is a property of your specific solder joints, the firmware sweeps and memtests it at runtime instead of hardcoding a constant.",
         "Because the whole engine was written before any hardware existed, correctness had to come from somewhere other than the board. The host suite runs 602 assertions; the full forward pass matches an independent NumPy reference to within 8e-06 worst relative error; and the DSP kernels — the one path a native host test cannot reach — are cross-compiled and executed under emulation to the identical figure, with the build grepping the disassembly to confirm the intended instruction is really in the binary. Bring-up still found five real defects that emulation could not: a reset-state bit routing a FIFO to DMA so every chip ID read returned zero, a clock table that assumed a different PLL programming than the RTOS actually uses, DMA into cacheable buffers, and an alignment bug in the arena carver.",
-        "The piece I'd point at first is a codec that uses the model itself as the probability source for a range coder — two endpoints holding the identical weights transmit only the residual surprise of a message rather than its text, at 1.79× smaller than the strongest classical baseline for payloads too short to build a dictionary from. Getting there meant making the forward pass bit-identical across architectures, because the decoder has to rebuild the encoder's probability table exactly or the range desynchronises and the rest of the message is lost. That turned out to require replacing four standard math functions which disagree in the last bit on about 1.2% of the values a forward pass touches — enough, at thousands of calls per token, to desynchronise a decoder almost immediately.",
+        "The piece I'd point at first is Semaphore, a codec that uses the model itself as the probability source for a range coder. Two devices holding the identical weights don't exchange text — only the part the model failed to predict. That turns a 70-character message into five bytes, where gzip manages 65, because a payload that short gives a classical coder no repetition to work with while a language model arrives already holding the dictionary. It runs on the board and interoperates with the host in both directions: each end produces byte-identical wire bytes for the same string, and either can be the far end of a decode.",
+        "That interoperability is the hard part, not the compression. The decoder has to rebuild the encoder's probability table exactly — one bit of disagreement and the range desynchronises, losing the rest of the message. Making the forward pass bit-identical across architectures meant replacing four standard math functions that disagree in the last bit on about 1.2% of the values a forward pass touches, which at thousands of calls per token desynchronises a decoder almost immediately. The result is that a 600 MHz microcontroller running hand-written DSP kernels and a laptop running generic C99 hash their logits identically, across different operating systems, libcs, compilers, word sizes, and kernel implementations.",
       ],
       bullets: [
         "Measured on hardware: 2.98 tok/s, 309 ms to first token, 25.5 MB/s effective — 81% of the sequential PSRAM bench",
@@ -284,12 +285,14 @@ export const siteData: SiteData = {
         "Verified before hardware existed: 602 assertions, forward pass within 8e-06 of a NumPy reference, DSP kernels run under emulation",
         "PSRAM driver sweeps and memtests its own bus clock at runtime — achievable speed is a property of the solder joints",
         "Bit-identical forward pass across architectures, achieved by replacing the four libm functions that disagree in the last bit",
-        "Model-as-probability-source range coder: 1.79× smaller than dictionary-primed deflate on short messages",
+        "Semaphore codes against the model's own predictions: 70 characters into 5 bytes, where gzip manages 65",
+        "Board and host produce byte-identical wire bytes for the same string — either end can decode the other",
       ],
       images: [],
       placeholderLabel: "teensy 4.1",
       links: [
-        { label: "github.com/Ian-q/teensy-tinyllm", href: "https://github.com/Ian-q/teensy-tinyllm", primary: true },
+        { label: "Interactive walkthrough", href: "https://ian-q.github.io/teensy-tinyllm/", primary: true },
+        { label: "github.com/Ian-q/teensy-tinyllm", href: "https://github.com/Ian-q/teensy-tinyllm" },
       ],
     },
     {
