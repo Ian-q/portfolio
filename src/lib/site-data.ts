@@ -468,7 +468,9 @@ export const siteData: SiteData = {
         { src: "/images/ME406-computed-torque.png", alt: "Computed-torque controller tracking the commanded trajectory on all six joints", orient: "landscape" },
         { src: "/images/ME406-pd-gravity.png", alt: "PD-plus-gravity controller on the same trajectory, tracking only two joints", orient: "landscape" },
       ],
-      links: [],
+      links: [
+        { label: "github.com/Ian-q/robotics-matlab", href: "https://github.com/Ian-q/robotics-matlab", primary: true },
+      ],
     },
     {
       id: "ee460-spacecraft",
@@ -500,7 +502,9 @@ export const siteData: SiteData = {
         { src: "/images/EE460-tracking-scope.png", alt: "Commanded versus actual response on all three axes across a mission", orient: "landscape" },
         { src: "/images/EE460-sensor-averaging.png", alt: "Redundant-sensor averaging with health-monitor masking, per axis", orient: "landscape" },
       ],
-      links: [],
+      links: [
+        { label: "github.com/Ian-q/ee460-spacecraft-control", href: "https://github.com/Ian-q/ee460-spacecraft-control", primary: true },
+      ],
     },
     {
       id: "me571-sindy",
@@ -529,7 +533,9 @@ export const siteData: SiteData = {
       ],
       images: [],
       placeholderLabel: "negative result",
-      links: [],
+      links: [
+        { label: "github.com/Ian-q/me571-sindy-arm", href: "https://github.com/Ian-q/me571-sindy-arm", primary: true },
+      ],
     },
   ],
 
